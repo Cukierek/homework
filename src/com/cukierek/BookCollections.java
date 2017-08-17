@@ -7,9 +7,10 @@ public class BookCollections {
 	// zwraca książki z kolekcji books które zostały napisane przez zadanego autora
 	// NIE modyfikuje kolekcji books!
 	public static Collection<Book> findByAuthor(Collection<Book> books, Person author) {
-		Collection<Book> booksByAuthor = new HashSet<Book>();
+		Collection<Book> booksByAuthor = new HashSet<>();
 		for (Book book: books) {
-			if (book.getAuthor().equals(author)) booksByAuthor.add(book);
+			if (book.isAuthor(author)) booksByAuthor.add(book);
+			// stworzyć w bean'ie metodę porównującą autora
 		}
 		return booksByAuthor;
 	}
@@ -21,6 +22,7 @@ public class BookCollections {
 		Collection<Book> booksByTitle = new HashSet<>();
 		for (Book book: books) {
 			if (book.getTitle().toLowerCase().contains(phrase.toLowerCase())) booksByTitle.add(book);
+			// j.w.
 		}
 		return booksByTitle;
 	}
@@ -31,6 +33,7 @@ public class BookCollections {
 		Collection<Book> booksByGenres = new HashSet<>();
 		for (Book book : books) {
 			if (book.getGenres().containsAll(genres))booksByGenres.add(book);
+			// j. w.
 		}
 		return booksByGenres;
 	}
@@ -38,7 +41,7 @@ public class BookCollections {
 	// zwraca posortowaną rosnąco po tytule listę książek stworzoną z kolekcji books
 	// NIE modyfikuje kolekcji books!
 	public static List<Book> sortByTitle(Collection<Book> books) {
-		List<Book> sortedByTitle = new ArrayList<Book>(books);
+		List<Book> sortedByTitle = new ArrayList<>(books);
 		sortedByTitle.sort(new Comparator<Book>() {
 			@Override
 			public int compare(Book o1, Book o2) {
@@ -52,7 +55,7 @@ public class BookCollections {
 	// po tytule
 	// NIE modyfikuje kolekcji books!
 	public static List<Book> sortByAuthorAndTitle(Collection<Book> books) {
-		List<Book> sortedByLastNameFirstNameTitle = new ArrayList<Book>(books);
+		List<Book> sortedByLastNameFirstNameTitle = new ArrayList<>(books);
 		sortedByLastNameFirstNameTitle.sort(new Comparator<Book>() {
 
 			private static final int LAST_NAME_PRIORITY = 100;
@@ -75,9 +78,10 @@ public class BookCollections {
 	public static Map<Genre, Collection<Book>> genresMap(Collection<Book> books) {
 		Map<Genre, Collection<Book>> genresMap = new HashMap<>();
 		for (Genre genre : Genre.values()) {
-			List<Book> booksByGenre = new ArrayList<Book>();
+			List<Book> booksByGenre = new ArrayList<>();
 			for (Book book : books) {
 				if (book.hasGenre(genre)) booksByGenre.add(book);
+				// odwroć pętle!
 			}
 			genresMap.put(genre, booksByGenre);
 		}
@@ -85,7 +89,7 @@ public class BookCollections {
 	}
 
 	public static List<Book> sortByAuthorFirstAndLastName(Collection<Book> books) {
-		List<Book> sortedByLastNameFirstName = new ArrayList<Book>(books);
+		List<Book> sortedByLastNameFirstName = new ArrayList<>(books);
 		sortedByLastNameFirstName.sort(new Comparator<Book>() {
 
 			private static final int LAST_NAME_PRIORITY = 100;
@@ -105,6 +109,8 @@ public class BookCollections {
 	public static Map<Person, Collection<Book>> authorsMap(Collection<Book> books) {
 		List<Book> booksSortedByAuthor = sortByAuthorFirstAndLastName(books);
 		Map<Person, Collection<Book>> authorsMap = new HashMap<>();
+
+		// spróbuj bez sortowania
 
 		Person currentAuthor = booksSortedByAuthor.get(0).getAuthor();
 
@@ -128,6 +134,7 @@ public class BookCollections {
 		for (Book book : books) {
 			Person author = book.getAuthor();
 			if (occurrencesMap.containsKey(author)) {
+				// zamiast containsKey spróbuj occurrencesMap.getOrDefault();
 				occurrencesMap.put(author, occurrencesMap.get(author) + 1);
 			} else {
 				occurrencesMap.put(author, 1);
@@ -165,6 +172,10 @@ public class BookCollections {
 				occurrencesMap.put(author, 1);
 			}
 		}
+
+		// zamiast lambdy wrzuć Comparable.compare(o1, o2);
+		// spróbuj samodzielnie zaimplementować "max"
+
 		return Collections.max(occurrencesMap.entrySet(), (entry1, entry2) -> entry1.getValue() - entry2.getValue()).getKey();
 	}
 

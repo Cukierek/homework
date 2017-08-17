@@ -10,7 +10,6 @@ public class BookCollectionsTests {
 
 	// Collection used in all tests
 
-	@SuppressWarnings("Deprecated")
 	public static Collection<Book> createBookCollection() {
 
 		Collection<Book> booksCollection = new ArrayList<>();
@@ -51,6 +50,7 @@ public class BookCollectionsTests {
 
 	public static Collection<Book> createSortedByTitleBookCollection() {
 
+		// posortuj zamiast się powtarzać
 		Collection<Book> sortedBooksCollection = new ArrayList<>();
 		Set<Genre> genreSet = new HashSet<>();
 
@@ -93,11 +93,22 @@ public class BookCollectionsTests {
 
 	@Test
 	public void findByAuthorTest () {
+		// given - dane wejściowe
+		// when - wywołanie testowanej metody
+		// then - sprawdzenie asercji
+
+		// GIVEN
+
 		Collection<Book> inputCollection = createBookCollection();
 		Person inputPerson = new Person("Joanne", "Rowling", 50, Gender.FEMALE);
 
-		Collection<Book> expectedOutputCollection = new HashSet<>();
+		// WHEN
 
+		Collection<Book> actualCollection = BookCollections.findByAuthor(inputCollection, inputPerson);
+
+		// THEN
+
+		Collection<Book> expectedOutputCollection = new HashSet<>();
 		Set<Genre> genreSet = new HashSet<>();
 
 		genreSet.addAll(Arrays.asList(Genre.FANTASY, Genre.COMEDY, Genre.ROMANTIC, Genre.HORROR, Genre.FICTION));
@@ -110,7 +121,7 @@ public class BookCollectionsTests {
 		expectedOutputCollection.add(new Book("Harry Potter & The half-blood prince", new Person("Joanne", "Rowling", 50, Gender.FEMALE), genreSet));
 		expectedOutputCollection.add(new Book("Harry Potter & The deathly hallows", new Person("Joanne", "Rowling", 50, Gender.FEMALE), genreSet));
 
-		Assert.assertEquals(expectedOutputCollection, BookCollections.findByAuthor(inputCollection, inputPerson));
+		Assert.assertEquals(expectedOutputCollection, actualCollection);
 	}
 
 	@Test
@@ -131,7 +142,7 @@ public class BookCollectionsTests {
 		expectedOutputCollection.add(new Book("Harry Potter & The half-blood prince", new Person("Joanne", "Rowling", 50, Gender.FEMALE), genreSet));
 		expectedOutputCollection.add(new Book("Harry Potter & The deathly hallows", new Person("Joanne", "Rowling", 50, Gender.FEMALE), genreSet));
 
-		Assert.assertEquals(expectedOutputCollection, BookCollections.findByTitle(inputCollection, "HARRY"));
+		Assert.assertEquals(expectedOutputCollection, BookCollections.findByTitle(inputCollection, "POTTER"));
 	}
 
 	@Test

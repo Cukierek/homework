@@ -33,6 +33,10 @@ public class Book {
 		return genres;
 	}
 
+	public boolean isAuthor(Person person) {
+		return author.equals(person);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
