@@ -34,8 +34,7 @@ public class Person {
 
 		if (!firstName.equals(person.firstName)) return false;
 		if (!lastName.equals(person.lastName)) return false;
-		if (!age.equals(person.age)) return false;
-		return gender == person.gender;
+		return age.equals(person.age) && gender == person.gender;
 	}
 
     /* @Override
@@ -71,11 +70,11 @@ public class Person {
         return "|        " + firstName + "        |        " + lastName + "        |        " + age + "        |        " + gender + "      |";
     }*/
 
-	public String getFirstName() {
+	String getFirstName() {
 		return firstName;
 	}
 
-	public String getLastName() {
+	String getLastName() {
 		return lastName;
 	}
 

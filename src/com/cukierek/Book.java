@@ -17,24 +17,36 @@ public class Book {
 		this.genres.addAll(genres);
 	}
 
-	public boolean hasGenre(Genre genre) {
+	boolean hasGenre(Genre genre) {
 		return genres.contains(genre);
 	}
 
-	public String getTitle() {
+	String getTitle() {
 		return title;
 	}
 
-	public Person getAuthor() {
+	Person getAuthor() {
 		return author;
 	}
 
-	public Set<Genre> getGenres() {
+	Set<Genre> getGenres() {
 		return genres;
 	}
 
-	public boolean isAuthor(Person person) {
+	boolean isAuthor(Person person) {
 		return author.equals(person);
+	}
+
+	boolean titleStartsWithPhrase(String phrase) {
+		return title.substring(0, phrase.length()).compareToIgnoreCase(phrase) == 0;
+	}
+
+	boolean containsAllGenres(Set<Genre> givenGenres) {
+		return genres.containsAll(givenGenres);
+	}
+
+	int compareTitle(String givenTitle) {
+		return title.compareTo(givenTitle);
 	}
 
 	@Override
@@ -45,8 +57,7 @@ public class Book {
 		Book book = (Book) o;
 
 		if (title != null ? !title.equals(book.title) : book.title != null) return false;
-		if (!author.equals(book.author)) return false;
-		return genres != null ? genres.equals(book.genres) : book.genres == null;
+		return author.equals(book.author) && (genres != null ? genres.equals(book.genres) : book.genres == null);
 	}
 
 	@Override
@@ -64,5 +75,9 @@ public class Book {
 				", author=" + author +
 				", genres=" + genres +
 				'}';
+	}
+
+	public String simpleToString() {
+		return "BOOK = " + title + " | " + author.getFirstName() + " " + author.getLastName();
 	}
 }

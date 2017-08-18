@@ -8,9 +8,8 @@ public class BookCollections {
 	// NIE modyfikuje kolekcji books!
 	public static Collection<Book> findByAuthor(Collection<Book> books, Person author) {
 		Collection<Book> booksByAuthor = new HashSet<>();
-		for (Book book: books) {
+		for (Book book : books) {
 			if (book.isAuthor(author)) booksByAuthor.add(book);
-			// stworzyć w bean'ie metodę porównującą autora
 		}
 		return booksByAuthor;
 	}
@@ -20,9 +19,8 @@ public class BookCollections {
 	// NIE modyfikuje kolekcji books!
 	public static Collection<Book> findByTitle(Collection<Book> books, String phrase) {
 		Collection<Book> booksByTitle = new HashSet<>();
-		for (Book book: books) {
-			if (book.getTitle().toLowerCase().contains(phrase.toLowerCase())) booksByTitle.add(book);
-			// j.w.
+		for (Book book : books) {
+			if (book.titleStartsWithPhrase(phrase)) booksByTitle.add(book);
 		}
 		return booksByTitle;
 	}
@@ -32,8 +30,7 @@ public class BookCollections {
 	public static Collection<Book> findByGenres(Collection<Book> books, Set<Genre> genres) {
 		Collection<Book> booksByGenres = new HashSet<>();
 		for (Book book : books) {
-			if (book.getGenres().containsAll(genres))booksByGenres.add(book);
-			// j. w.
+			if (book.containsAllGenres(genres))booksByGenres.add(book);
 		}
 		return booksByGenres;
 	}
@@ -45,7 +42,7 @@ public class BookCollections {
 		sortedByTitle.sort(new Comparator<Book>() {
 			@Override
 			public int compare(Book o1, Book o2) {
-				return o1.getTitle().compareTo(o2.getTitle());
+				return o1.compareTitle(o2.getTitle());
 			}
 		});
 		return sortedByTitle;
@@ -77,68 +74,44 @@ public class BookCollections {
 	//do wielu gatunków, powinna wiele razy występować na mapie
 	public static Map<Genre, Collection<Book>> genresMap(Collection<Book> books) {
 		Map<Genre, Collection<Book>> genresMap = new HashMap<>();
-		for (Genre genre : Genre.values()) {
-			List<Book> booksByGenre = new ArrayList<>();
-			for (Book book : books) {
-				if (book.hasGenre(genre)) booksByGenre.add(book);
-				// odwroć pętle!
+		for (Book book : books) {
+			for (Genre genre : book.getGenres()) {
+				if (genresMap.containsKey(genre)) {
+					genresMap.get(genre).add(book);
+				} else {
+					Collection<Book> internalCollection = new HashSet<>();
+					internalCollection.add(book);
+					genresMap.put(genre, internalCollection);
+				}
 			}
-			genresMap.put(genre, booksByGenre);
 		}
 		return genresMap;
 	}
 
-	public static List<Book> sortByAuthorFirstAndLastName(Collection<Book> books) {
-		List<Book> sortedByLastNameFirstName = new ArrayList<>(books);
-		sortedByLastNameFirstName.sort(new Comparator<Book>() {
-
-			private static final int LAST_NAME_PRIORITY = 100;
-			private static final int FIRST_NAME_PRIORITY = 10;
-
-			@Override
-			public int compare(Book o1, Book o2) {
-				int lastNameTest = (int) Math.signum(o1.getAuthor().getLastName().compareTo(o2.getAuthor().getLastName()));
-				int firstNameTest = (int) Math.signum(o1.getAuthor().getFirstName().compareTo(o2.getAuthor().getFirstName()));
-				return LAST_NAME_PRIORITY * lastNameTest + FIRST_NAME_PRIORITY * firstNameTest;
-			}
-		});
-		return sortedByLastNameFirstName;
-	}
-
 	//tworzy mapę książek napisanych przez poszczególnych autorów
 	public static Map<Person, Collection<Book>> authorsMap(Collection<Book> books) {
-		List<Book> booksSortedByAuthor = sortByAuthorFirstAndLastName(books);
 		Map<Person, Collection<Book>> authorsMap = new HashMap<>();
-
-		// spróbuj bez sortowania
-
-		Person currentAuthor = booksSortedByAuthor.get(0).getAuthor();
-
-		List<Book> tinyBookCollection = new ArrayList<>();
-
-		for (Book book : booksSortedByAuthor) {
-			if (currentAuthor.equals(book.getAuthor())) { tinyBookCollection.add(book); }
-			else {
-				authorsMap.put(book.getAuthor(), tinyBookCollection);
-				currentAuthor = book.getAuthor();
-				tinyBookCollection = new ArrayList<>();
+		for (Book book : books) {
+			Person author = book.getAuthor();
+			if (authorsMap.containsKey(author)) {
+				authorsMap.get(author).add(book);
+			} else {
+				Collection<Book> internalCollection = new HashSet<>();
+				internalCollection.add(book);
+				authorsMap.put(author, internalCollection);
 			}
 		}
-
 		return authorsMap;
 	}
 
-	//tworzy mapę z ilością książek napisanych przez zadanego autora
+	// tworzy mapę z ilością książek napisanych przez zadanego autora
 	public static Map<Person, Integer> authorsBookCountMap(Collection<Book> books) {
 		Map<Person, Integer> occurrencesMap = new HashMap<>();
+		// można też zastosować metodę powyżej
 		for (Book book : books) {
 			Person author = book.getAuthor();
-			if (occurrencesMap.containsKey(author)) {
-				// zamiast containsKey spróbuj occurrencesMap.getOrDefault();
-				occurrencesMap.put(author, occurrencesMap.get(author) + 1);
-			} else {
-				occurrencesMap.put(author, 1);
-			}
+			Integer currentValue = occurrencesMap.getOrDefault(author, 0);
+			occurrencesMap.put(author, currentValue + 1);
 		}
 		return occurrencesMap;
 	}
@@ -163,40 +136,30 @@ public class BookCollections {
 
 	// zwraca autora który napisał najwięcej książek
 	public static Person bestAuthor(Collection<Book> books) {
-		Map<Person, Integer> occurrencesMap = new HashMap<>();
-		for (Book book : books) {
-			Person author = book.getAuthor();
-			if (occurrencesMap.containsKey(author)) {
-				occurrencesMap.put(author, occurrencesMap.get(author) + 1);
-			} else {
-				occurrencesMap.put(author, 1);
+		Map<Person, Integer> occurrencesMap = authorsBookCountMap(books);
+		Integer currentBestAmount = -1;
+		Person currentBestAuthor = new Person("", "" , -1, Gender.MALE);
+		for (Map.Entry<Person, Integer> entry : occurrencesMap.entrySet()) {
+			if (entry.getValue() > currentBestAmount) {
+				currentBestAmount = entry.getValue();
+				currentBestAuthor = entry.getKey();
 			}
 		}
-
-		// zamiast lambdy wrzuć Comparable.compare(o1, o2);
-		// spróbuj samodzielnie zaimplementować "max"
-
-		return Collections.max(occurrencesMap.entrySet(), (entry1, entry2) -> entry1.getValue() - entry2.getValue()).getKey();
+		return currentBestAuthor;
 	}
 
 	// zwraca gatunek który ma najwięcej książek
 	public static Genre mostPopularGenre(Collection<Book> books) {
-		Map<Genre, Integer> occurrences = new HashMap<>();
-		for (Book book : books) {
-			Set<Genre> keys = book.getGenres();
-			for (Genre genre : keys) {
-				if (occurrences.containsKey(genre)) {
-					occurrences.put(genre, occurrences.get(genre) + 1);
-				} else {
-					occurrences.put(genre, 1);
-				}
+		Map<Genre, Collection<Book>> occurrences = genresMap(books);
+		int currentMax = -1;
+		Genre currentMaxGenre = Genre.SATIRE;
+		for (Map.Entry<Genre, Collection<Book>> entry : occurrences.entrySet()) {
+			int booksCount = booksCount(entry.getValue(), entry.getKey());
+			if (currentMax < booksCount) {
+				currentMax = booksCount;
+				currentMaxGenre = entry.getKey();
 			}
 		}
-
-		for (Map.Entry<Genre, Integer> entry : occurrences.entrySet()) {
-			System.out.print(entry.getKey().name() + ": " + entry.getValue() + "\n");
-		}
-
-		return Collections.max(occurrences.entrySet(), (entry1, entry2) -> entry1.getValue() - entry2.getValue()).getKey();
+		return currentMaxGenre;
 	}
 }
